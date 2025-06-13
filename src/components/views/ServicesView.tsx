@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { ServiceCard } from '../booking/ServiceCard';
+import { ServiceCard } from '../services/ServiceCard';
 import { BookingModal } from '../booking/BookingModal';
-import { useBooking } from '../../contexts/BookingContext';
-import { Service } from '../../types';
+import { useServices } from '../../hooks/useServices';
+import { Database } from '../../types/database';
+
+type Service = Database['public']['Tables']['services']['Row'] & {
+  profiles?: Database['public']['Tables']['profiles']['Row'];
+};
 
 export function ServicesView() {
-  const { services } = useBooking();
+  const { services, loading } = useServices();
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -18,6 +22,14 @@ export function ServicesView() {
   const handleBookService = (service: Service) => {
     setSelectedService(service);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -36,7 +48,7 @@ export function ServicesView() {
             onClick={() => setSelectedCategory(category)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               selectedCategory === category
-                ? 'bg-primary-500 text-white'
+                ? 'bg-pink-500 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -55,6 +67,12 @@ export function ServicesView() {
           />
         ))}
       </div>
+
+      {filteredServices.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No services found in this category.</p>
+        </div>
+      )}
 
       {/* Booking Modal */}
       {selectedService && (

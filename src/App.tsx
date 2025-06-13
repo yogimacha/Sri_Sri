@@ -1,30 +1,35 @@
 import React, { useState } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { BookingProvider } from './contexts/BookingContext';
-import { LoginForm } from './components/auth/LoginForm';
+import { Toaster } from 'react-hot-toast';
+import { useAuth } from './hooks/useAuth';
+import { AuthForm } from './components/auth/AuthForm';
 import { Header } from './components/layout/Header';
 import { ArtistDashboard } from './components/views/ArtistDashboard';
 import { BookingsView } from './components/views/BookingsView';
-import { ClientsView } from './components/views/ClientsView';
 import { ServicesView } from './components/views/ServicesView';
+import { ArtistServicesView } from './components/views/ArtistServicesView';
 import { MyBookingsView } from './components/views/MyBookingsView';
 
-function AppContent() {
-  const { user, isLoading } = useAuth();
+function App() {
+  const { user, loading } = useAuth();
   const [currentView, setCurrentView] = useState(
-    user?.role === 'artist' ? 'dashboard' : 'services'
+    user?.profile?.role === 'artist' ? 'dashboard' : 'services'
   );
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
       </div>
     );
   }
 
   if (!user) {
-    return <LoginForm />;
+    return (
+      <>
+        <AuthForm />
+        <Toaster position="top-right" />
+      </>
+    );
   }
 
   const renderView = () => {
@@ -33,14 +38,12 @@ function AppContent() {
         return <ArtistDashboard />;
       case 'bookings':
         return <BookingsView />;
-      case 'clients':
-        return <ClientsView />;
       case 'services':
-        return <ServicesView />;
+        return user.profile?.role === 'artist' ? <ArtistServicesView /> : <ServicesView />;
       case 'my-bookings':
         return <MyBookingsView />;
       default:
-        return user.role === 'artist' ? <ArtistDashboard /> : <ServicesView />;
+        return user.profile?.role === 'artist' ? <ArtistDashboard /> : <ServicesView />;
     }
   };
 
@@ -50,17 +53,8 @@ function AppContent() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderView()}
       </main>
+      <Toaster position="top-right" />
     </div>
-  );
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <BookingProvider>
-        <AppContent />
-      </BookingProvider>
-    </AuthProvider>
   );
 }
 

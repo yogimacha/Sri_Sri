@@ -1,18 +1,20 @@
 import React from 'react';
 import { Calendar, DollarSign, Users, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '../ui/Card';
-import { useBooking } from '../../contexts/BookingContext';
+import { useBookings } from '../../hooks/useBookings';
+import { useAuth } from '../../hooks/useAuth';
 import { format, isThisMonth, isToday } from 'date-fns';
 
 export function StatsGrid() {
-  const { bookings, clients } = useBooking();
+  const { user } = useAuth();
+  const { bookings } = useBookings(user?.id);
 
-  const todayBookings = bookings.filter(b => isToday(b.date)).length;
-  const monthlyBookings = bookings.filter(b => isThisMonth(b.date)).length;
+  const todayBookings = bookings.filter(b => isToday(new Date(b.appointment_date))).length;
+  const monthlyBookings = bookings.filter(b => isThisMonth(new Date(b.appointment_date))).length;
   const monthlyRevenue = bookings
-    .filter(b => isThisMonth(b.date) && b.paymentStatus === 'paid')
-    .reduce((sum, b) => sum + b.price, 0);
-  const totalClients = clients.length;
+    .filter(b => isThisMonth(new Date(b.appointment_date)) && b.payment_status === 'paid')
+    .reduce((sum, b) => sum + b.total_amount, 0);
+  const totalClients = new Set(bookings.map(b => b.client_id)).size;
 
   const stats = [
     {

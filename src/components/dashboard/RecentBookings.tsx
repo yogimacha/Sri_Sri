@@ -2,14 +2,16 @@ import React from 'react';
 import { Calendar, Clock, DollarSign, Phone, Mail } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { useBooking } from '../../contexts/BookingContext';
+import { useBookings } from '../../hooks/useBookings';
+import { useAuth } from '../../hooks/useAuth';
 import { format } from 'date-fns';
 
 export function RecentBookings() {
-  const { bookings, updateBooking } = useBooking();
+  const { user } = useAuth();
+  const { bookings, updateBookingStatus } = useBookings(user?.id);
   
   const recentBookings = bookings
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
 
   const getStatusColor = (status: string) => {
@@ -37,40 +39,42 @@ export function RecentBookings() {
           <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-gray-900">{booking.clientName}</h4>
+                <h4 className="font-medium text-gray-900">
+                  {booking.client_profile?.full_name || 'Unknown Client'}
+                </h4>
                 <span className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(booking.status)}`}>
                   {booking.status}
                 </span>
               </div>
               
-              <p className="text-sm text-gray-600 mb-2">{booking.serviceName}</p>
+              <p className="text-sm text-gray-600 mb-2">{booking.services?.name}</p>
               
               <div className="flex items-center space-x-4 text-xs text-gray-500">
                 <span className="flex items-center">
                   <Calendar className="w-3 h-3 mr-1" />
-                  {format(booking.date, 'MMM dd, yyyy')}
+                  {format(new Date(booking.appointment_date), 'MMM dd, yyyy')}
                 </span>
                 <span className="flex items-center">
                   <Clock className="w-3 h-3 mr-1" />
-                  {booking.startTime}
+                  {booking.start_time}
                 </span>
                 <span className="flex items-center">
                   <DollarSign className="w-3 h-3 mr-1" />
-                  ${booking.price}
+                  ${booking.total_amount}
                 </span>
               </div>
 
               <div className="flex items-center space-x-3 mt-2 text-xs text-gray-500">
-                {booking.clientEmail && (
-                  <a href={`mailto:${booking.clientEmail}`} className="flex items-center hover:text-primary-600">
+                {booking.client_profile?.email && (
+                  <a href={`mailto:${booking.client_profile.email}`} className="flex items-center hover:text-pink-600">
                     <Mail className="w-3 h-3 mr-1" />
-                    {booking.clientEmail}
+                    {booking.client_profile.email}
                   </a>
                 )}
-                {booking.clientPhone && (
-                  <a href={`tel:${booking.clientPhone}`} className="flex items-center hover:text-primary-600">
+                {booking.client_profile?.phone && (
+                  <a href={`tel:${booking.client_profile.phone}`} className="flex items-center hover:text-pink-600">
                     <Phone className="w-3 h-3 mr-1" />
-                    {booking.clientPhone}
+                    {booking.client_profile.phone}
                   </a>
                 )}
               </div>
@@ -81,7 +85,7 @@ export function RecentBookings() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => updateBooking(booking.id, { status: 'confirmed' })}
+                  onClick={() => updateBookingStatus(booking.id, 'confirmed')}
                   className="text-green-600 border-green-300 hover:bg-green-50"
                 >
                   Confirm
@@ -89,7 +93,7 @@ export function RecentBookings() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => updateBooking(booking.id, { status: 'cancelled' })}
+                  onClick={() => updateBookingStatus(booking.id, 'cancelled')}
                   className="text-red-600 border-red-300 hover:bg-red-50"
                 >
                   Cancel

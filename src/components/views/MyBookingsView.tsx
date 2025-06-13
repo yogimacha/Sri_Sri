@@ -2,17 +2,17 @@ import React from 'react';
 import { Calendar, Clock, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { useBooking } from '../../contexts/BookingContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useBookings } from '../../hooks/useBookings';
+import { useAuth } from '../../hooks/useAuth';
 import { format, isFuture } from 'date-fns';
 
 export function MyBookingsView() {
-  const { bookings, updateBooking } = useBooking();
   const { user } = useAuth();
+  const { bookings, updateBookingStatus, loading } = useBookings(user?.id);
   
-  const userBookings = bookings.filter(booking => booking.clientId === user?.id);
-  const upcomingBookings = userBookings.filter(booking => isFuture(booking.date));
-  const pastBookings = userBookings.filter(booking => !isFuture(booking.date));
+  const userBookings = bookings.filter(booking => booking.client_id === user?.id);
+  const upcomingBookings = userBookings.filter(booking => isFuture(new Date(booking.appointment_date)));
+  const pastBookings = userBookings.filter(booking => !isFuture(new Date(booking.appointment_date)));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -34,8 +34,8 @@ export function MyBookingsView() {
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{booking.serviceName}</h3>
-            <p className="text-sm text-gray-600">Booking #{booking.id}</p>
+            <h3 className="text-lg font-semibold text-gray-900">{booking.services?.name}</h3>
+            <p className="text-sm text-gray-600">Booking #{booking.id.slice(0, 8)}</p>
           </div>
           <span className={`px-3 py-1 text-sm font-medium rounded-full capitalize ${getStatusColor(booking.status)}`}>
             {booking.status}
@@ -45,15 +45,15 @@ export function MyBookingsView() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
           <div className="flex items-center">
             <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-            {format(booking.date, 'MMM dd, yyyy')}
+            {format(new Date(booking.appointment_date), 'MMM dd, yyyy')}
           </div>
           <div className="flex items-center">
             <Clock className="w-4 h-4 mr-2 text-gray-400" />
-            {booking.startTime} - {booking.endTime}
+            {booking.start_time} - {booking.end_time}
           </div>
           <div className="flex items-center">
             <DollarSign className="w-4 h-4 mr-2 text-gray-400" />
-            ${booking.price}
+            ${booking.total_amount}
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export function MyBookingsView() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => updateBooking(booking.id, { status: 'cancelled' })}
+              onClick={() => updateBookingStatus(booking.id, 'cancelled')}
               className="text-red-600 border-red-300 hover:bg-red-50"
             >
               Cancel Booking
@@ -78,6 +78,14 @@ export function MyBookingsView() {
       </CardContent>
     </Card>
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
