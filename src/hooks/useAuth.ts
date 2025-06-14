@@ -94,7 +94,7 @@ export function useAuth() {
       return data;
     } catch (error: any) {
       toast.error(error.message);
-      throw error;
+      return null;
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export function useAuth() {
       return data;
     } catch (error: any) {
       toast.error(error.message);
-      throw error;
+      return null;
     } finally {
       setLoading(false);
     }
