@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../hooks/useAuth';
+import { ForgotPasswordForm } from './ForgotPasswordForm';
 
 export function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -26,6 +28,10 @@ export function AuthForm() {
       // Error handling is done in the hook
     }
   };
+
+  if (showForgotPassword) {
+    return <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -135,13 +141,26 @@ export function AuthForm() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-pink-600 hover:text-pink-700 font-medium"
-            >
-              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-            </button>
+          <div className="mt-6 space-y-4">
+            {!isSignUp && (
+              <div className="text-center">
+                <button
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-pink-600 hover:text-pink-700 font-medium text-sm"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
+            
+            <div className="text-center">
+              <button
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-pink-600 hover:text-pink-700 font-medium"
+              >
+                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+              </button>
+            </div>
           </div>
         </div>
       </div>

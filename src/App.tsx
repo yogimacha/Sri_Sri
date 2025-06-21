@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './hooks/useAuth';
 import { AuthForm } from './components/auth/AuthForm';
+import { ResetPasswordForm } from './components/auth/ResetPasswordForm';
 import { Header } from './components/layout/Header';
 import { ArtistDashboard } from './components/views/ArtistDashboard';
 import { BookingsView } from './components/views/BookingsView';
@@ -14,12 +15,34 @@ function App() {
   const [currentView, setCurrentView] = useState(
     user?.profile?.role === 'artist' ? 'dashboard' : 'services'
   );
+  const [isResetPassword, setIsResetPassword] = useState(false);
+
+  useEffect(() => {
+    // Check if this is a password reset page
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
+    const type = urlParams.get('type');
+    
+    if (accessToken && type === 'recovery') {
+      setIsResetPassword(true);
+    }
+  }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
       </div>
+    );
+  }
+
+  // Show reset password form if this is a password reset flow
+  if (isResetPassword) {
+    return (
+      <>
+        <ResetPasswordForm />
+        <Toaster position="top-right" />
+      </>
     );
   }
 
