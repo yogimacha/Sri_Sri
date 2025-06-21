@@ -93,7 +93,12 @@ export function useAuth() {
       toast.success('Account created successfully!');
       return data;
     } catch (error: any) {
-      toast.error(error.message);
+      // Handle specific error for existing user
+      if (error.message?.includes('User already registered') || error.message?.includes('user_already_exists')) {
+        toast.error('An account with this email already exists. Please sign in instead.');
+      } else {
+        toast.error(error.message);
+      }
       return null;
     } finally {
       setLoading(false);
